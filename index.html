@@ -29,7 +29,7 @@
     <div class="background-glow background-glow-right"></div>
 
     <main class="shell">
-      <section class="hero panel">
+      <header class="hero panel">
         <div class="hero-copy">
           <div class="app-brand">
             <img
@@ -39,16 +39,20 @@
             />
             <div class="app-brand-copy">
               <p class="eyebrow">Solo Leveling Inspired Routine Tracker</p>
-              <span id="installStateBadge" class="state-pill">Offline Ready</span>
+              <div class="hero-pills">
+                <span id="todayDateLabel" class="state-pill state-pill-muted">Today</span>
+                <span id="installStateBadge" class="state-pill">Offline Ready</span>
+              </div>
             </div>
           </div>
+
           <h1>Awakening System</h1>
           <p class="hero-text">
-            Clear your daily quests, build streaks, and watch your monthly rank
-            rise.
+            Train like a hunter. Finish your daily quests, keep your streak alive,
+            and watch your monthly rank rise.
           </p>
           <p id="installHint" class="app-tip">
-            Install this on your phone for a full-screen home-screen app experience.
+            Install this on your phone for a full-screen app experience.
           </p>
         </div>
 
@@ -66,10 +70,72 @@
             Reset Month
           </button>
         </div>
+      </header>
+
+      <nav class="panel app-nav" aria-label="App sections">
+        <button class="nav-tab is-active" type="button" data-tab="today">Today</button>
+        <button class="nav-tab" type="button" data-tab="month">Month</button>
+        <button class="nav-tab" type="button" data-tab="stats">Stats</button>
+      </nav>
+
+      <section class="app-panel is-active" data-tab-panel="today">
+        <div class="today-layout">
+          <section class="panel today-overview">
+            <div class="today-heading">
+              <div>
+                <p class="section-label">Daily Quest</p>
+                <h2>Today&apos;s Hunt</h2>
+              </div>
+
+              <div id="dailyRing" class="daily-ring" aria-label="Today's completion">
+                <strong id="dailyRingValue">0/10</strong>
+                <span>Cleared</span>
+              </div>
+            </div>
+
+            <div class="mini-stat-grid">
+              <article class="mini-stat-card">
+                <span>Completed</span>
+                <strong id="todayCompleted">0</strong>
+              </article>
+              <article class="mini-stat-card">
+                <span>Remaining</span>
+                <strong id="todayRemaining">10</strong>
+              </article>
+              <article class="mini-stat-card">
+                <span>Daily Rank</span>
+                <strong id="todayRank">E</strong>
+              </article>
+            </div>
+
+            <div class="today-actions">
+              <button id="completeTodayButton" class="install-button" type="button">
+                Complete Today
+              </button>
+              <button id="clearTodayButton" class="reset-button" type="button">
+                Clear Today
+              </button>
+            </div>
+          </section>
+
+          <section class="panel today-quests">
+            <div class="tracker-header">
+              <div>
+                <p class="section-label">Touch Friendly</p>
+                <h2>Today's Checkboxes</h2>
+              </div>
+              <p class="section-note">
+                Large taps for fast daily updates on your phone.
+              </p>
+            </div>
+
+            <div id="todayQuestList" class="today-list"></div>
+          </section>
+        </div>
       </section>
 
-      <section class="dashboard">
-        <div class="tracker panel">
+      <section class="app-panel" data-tab-panel="month">
+        <section class="tracker panel">
           <div class="tracker-header">
             <div>
               <p class="section-label">Quest Board</p>
@@ -83,9 +149,11 @@
           <div class="matrix-wrap">
             <div id="habitMatrix" class="matrix" role="table"></div>
           </div>
-        </div>
+        </section>
+      </section>
 
-        <aside class="insights">
+      <section class="app-panel" data-tab-panel="stats">
+        <div class="stats-layout">
           <section class="panel stats-panel">
             <p class="section-label">Hunter Status</p>
             <div class="stat-grid">
@@ -135,7 +203,7 @@
 
             <div id="topicProgressList" class="progress-list"></div>
           </section>
-        </aside>
+        </div>
       </section>
     </main>
 
