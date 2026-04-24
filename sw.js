@@ -1,10 +1,11 @@
-const CACHE_NAME = "awakening-system-v3";
+const CACHE_NAME = "awakening-system-v4";
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./script.js",
   "./manifest.webmanifest",
+  "./assets/app-icon-source.png",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/icon-maskable-512.png",
