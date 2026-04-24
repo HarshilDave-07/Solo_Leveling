@@ -1,551 +1,740 @@
-const STORAGE_KEY = "awakening-system-progress-v1";
+:root {
+  --bg: #050816;
+  --bg-deep: #030510;
+  --panel: rgba(8, 13, 30, 0.84);
+  --line: rgba(94, 197, 255, 0.24);
+  --line-strong: rgba(117, 226, 255, 0.58);
+  --text: #ebf8ff;
+  --muted: #8cabc5;
+  --accent: #58e6ff;
+  --accent-strong: #8cf4ff;
+  --success: #90ffba;
+  --warning: #ffd06e;
+  --danger: #ff7fa6;
+  --shadow: 0 28px 80px rgba(0, 0, 0, 0.52);
+}
 
-const habits = [
-  "Wake up 04:00 AM",
-  "Read",
-  "Study 3 HR",
-  "No Fap",
-  "30 Min Exercise",
-  "Pray to God",
-  "30 Min No Phone",
-  "3D / VFX",
-  "Building Project",
-  "Sleep at 11:00",
-];
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
 
-const monthSelect = document.querySelector("#monthSelect");
-const habitMatrix = document.querySelector("#habitMatrix");
-const resetMonthButton = document.querySelector("#resetMonthButton");
-const installAppButton = document.querySelector("#installAppButton");
-const installHint = document.querySelector("#installHint");
-const installStateBadge = document.querySelector("#installStateBadge");
-const gridTitle = document.querySelector("#gridTitle");
-const gridNote = document.querySelector("#gridNote");
-const overallCompletion = document.querySelector("#overallCompletion");
-const currentStreak = document.querySelector("#currentStreak");
-const perfectDays = document.querySelector("#perfectDays");
-const rankBadge = document.querySelector("#rankBadge");
-const chartCaption = document.querySelector("#chartCaption");
-const topicProgressList = document.querySelector("#topicProgressList");
-const chartCanvas = document.querySelector("#performanceChart");
-const chartContext = chartCanvas.getContext("2d");
+body {
+  position: relative;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at top, rgba(58, 121, 211, 0.18), transparent 30%),
+    linear-gradient(145deg, #02030a 0%, #061120 40%, #03050d 100%);
+  color: var(--text);
+  font-family: "Orbitron", sans-serif;
+}
 
-const liveNow = getNow();
-let selectedMonthIndex = liveNow.getMonth();
-let year = liveNow.getFullYear();
-let allProgress = loadProgress();
-let lastSeenDateStamp = getDateStamp(liveNow);
-let lastSeenLiveYear = liveNow.getFullYear();
-let lastSeenLiveMonthIndex = liveNow.getMonth();
-let deferredInstallPrompt = null;
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(140, 244, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 244, 255, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 85%);
+  pointer-events: none;
+}
 
-populateMonthSelect();
-render();
-startCalendarSync();
-setupInstallFlow();
-registerServiceWorker();
+.background-glow {
+  position: fixed;
+  border-radius: 999px;
+  filter: blur(60px);
+  opacity: 0.55;
+  pointer-events: none;
+}
 
-monthSelect.addEventListener("change", () => {
-  selectedMonthIndex = Number(monthSelect.value);
-  render();
-});
+.background-glow-left {
+  top: 12%;
+  left: -8%;
+  width: 280px;
+  height: 280px;
+  background: rgba(62, 120, 255, 0.3);
+}
 
-resetMonthButton.addEventListener("click", () => {
-  const daysInMonth = getDaysInMonth(year, selectedMonthIndex);
-  const confirmed = window.confirm(
-    `Reset all progress for ${monthNames[selectedMonthIndex]} ${year}?`,
-  );
+.background-glow-right {
+  right: -10%;
+  bottom: 14%;
+  width: 320px;
+  height: 320px;
+  background: rgba(88, 230, 255, 0.2);
+}
 
-  if (!confirmed) {
-    return;
+.shell {
+  position: relative;
+  z-index: 1;
+  width: min(1480px, calc(100% - 28px));
+  margin: 18px auto 32px;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(22, 40, 88, 0.18), transparent 34%),
+    var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  margin-bottom: 18px;
+}
+
+.hero-copy {
+  max-width: 760px;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.app-brand-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.app-brand-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  border: 1px solid rgba(140, 244, 255, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(140, 244, 255, 0.12),
+    0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.hero-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eyebrow,
+.section-label {
+  margin: 0;
+  color: var(--accent-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  letter-spacing: 0.04em;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1.02;
+  text-shadow: 0 0 26px rgba(88, 230, 255, 0.28);
+}
+
+h2 {
+  font-size: 1.3rem;
+}
+
+.hero-text,
+.section-note,
+.chart-caption {
+  color: var(--muted);
+}
+
+.hero-text {
+  margin: 14px 0 0;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  max-width: 580px;
+}
+
+.app-tip {
+  margin: 14px 0 0;
+  color: var(--accent-strong);
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+}
+
+.hero-controls {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(88, 230, 255, 0.3);
+  background: rgba(88, 230, 255, 0.12);
+  color: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.state-pill-muted {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.control {
+  display: grid;
+  gap: 10px;
+}
+
+.control span,
+.stat-title,
+.mini-stat-card span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent-strong);
+}
+
+select,
+.reset-button,
+.install-button,
+.nav-tab {
+  appearance: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 13px 16px;
+  min-height: 50px;
+  background: rgba(4, 11, 28, 0.88);
+  color: var(--text);
+  font: inherit;
+}
+
+select {
+  min-width: 220px;
+}
+
+.reset-button,
+.install-button,
+.nav-tab {
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease,
+    opacity 160ms ease;
+}
+
+.install-button {
+  border-color: rgba(144, 255, 186, 0.55);
+  background:
+    radial-gradient(circle at top, rgba(144, 255, 186, 0.22), transparent 65%),
+    rgba(5, 17, 28, 0.92);
+  box-shadow: 0 0 18px rgba(144, 255, 186, 0.12);
+}
+
+.install-button.is-hidden {
+  display: none;
+}
+
+.reset-button:hover,
+.reset-button:focus-visible,
+.install-button:hover,
+.install-button:focus-visible,
+.nav-tab:hover,
+.nav-tab:focus-visible,
+select:focus-visible,
+.today-checkbox:focus-visible + .today-quest-content {
+  outline: none;
+  transform: translateY(-1px);
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 4px rgba(88, 230, 255, 0.1);
+}
+
+.app-nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 10px;
+  margin-bottom: 18px;
+}
+
+.nav-tab {
+  min-height: 54px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.nav-tab.is-active {
+  border-color: rgba(144, 255, 186, 0.55);
+  background:
+    radial-gradient(circle at top, rgba(88, 230, 255, 0.22), transparent 70%),
+    rgba(6, 18, 38, 0.96);
+  box-shadow:
+    0 0 0 1px rgba(88, 230, 255, 0.16),
+    0 0 24px rgba(88, 230, 255, 0.14);
+}
+
+.app-panel {
+  display: none;
+}
+
+.app-panel.is-active {
+  display: block;
+}
+
+.today-layout,
+.stats-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.today-layout {
+  grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+}
+
+.today-overview,
+.today-quests,
+.tracker,
+.stats-panel,
+.chart-panel,
+.progress-panel {
+  padding: 22px;
+}
+
+.today-heading,
+.tracker-header,
+.chart-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 12px;
+}
+
+.daily-ring {
+  --progress-angle: 0deg;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, rgba(4, 10, 26, 0.96) 56%, transparent 57%),
+    conic-gradient(from 270deg, rgba(144, 255, 186, 0.96) 0deg, rgba(88, 230, 255, 0.96) var(--progress-angle), rgba(255, 255, 255, 0.06) var(--progress-angle));
+  box-shadow:
+    inset 0 0 0 1px rgba(88, 230, 255, 0.16),
+    0 0 28px rgba(88, 230, 255, 0.16);
+}
+
+.daily-ring strong {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.daily-ring span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mini-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.mini-stat-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(88, 230, 255, 0.12);
+  background: linear-gradient(180deg, rgba(13, 23, 56, 0.9), rgba(5, 10, 24, 0.95));
+}
+
+.mini-stat-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 1.55rem;
+}
+
+.today-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.today-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.today-quest {
+  display: block;
+}
+
+.today-checkbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.today-quest-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 78px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(88, 230, 255, 0.12);
+  background: linear-gradient(180deg, rgba(11, 20, 48, 0.92), rgba(6, 11, 25, 0.96));
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.today-quest.is-complete .today-quest-content {
+  border-color: rgba(144, 255, 186, 0.34);
+  background:
+    radial-gradient(circle at right top, rgba(144, 255, 186, 0.12), transparent 40%),
+    linear-gradient(180deg, rgba(10, 32, 42, 0.92), rgba(6, 14, 22, 0.96));
+  box-shadow: 0 0 24px rgba(88, 230, 255, 0.08);
+}
+
+.today-quest-content:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-strong);
+}
+
+.quest-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.quest-copy strong {
+  font-size: 0.92rem;
+  letter-spacing: 0.03em;
+}
+
+.quest-copy span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.quest-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(88, 230, 255, 0.24);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.quest-toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dffaff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.today-quest.is-complete .quest-toggle {
+  background: linear-gradient(90deg, rgba(88, 230, 255, 0.5), rgba(144, 255, 186, 0.72));
+}
+
+.today-quest.is-complete .quest-toggle::after {
+  transform: translateX(25px);
+  background: #ffffff;
+}
+
+.matrix-wrap {
+  margin-top: 22px;
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(88, 230, 255, 0.12);
+  background: rgba(2, 7, 19, 0.66);
+}
+
+.matrix {
+  min-width: 1260px;
+}
+
+.matrix-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.1fr) repeat(30, minmax(32px, 1fr));
+  align-items: center;
+}
+
+.matrix-row:not(:last-child) {
+  border-bottom: 1px solid rgba(88, 230, 255, 0.07);
+}
+
+.matrix-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(4, 10, 27, 0.98);
+}
+
+.matrix-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  border-right: 1px solid rgba(88, 230, 255, 0.07);
+}
+
+.matrix-row .matrix-cell:last-child {
+  border-right: 0;
+}
+
+.matrix-label {
+  justify-content: start;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding: 12px 16px;
+  background: rgba(5, 11, 28, 0.97);
+  font-size: 0.81rem;
+  letter-spacing: 0.04em;
+}
+
+.matrix-header .matrix-label {
+  z-index: 3;
+  background: rgba(4, 10, 27, 0.98);
+}
+
+.day-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border-radius: 4px;
+  border: 1px solid rgba(131, 224, 255, 0.55);
+  background: rgba(4, 12, 30, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    transform 120ms ease;
+}
+
+.checkbox:hover,
+.checkbox:focus-visible {
+  outline: none;
+  transform: scale(1.08);
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 14px rgba(88, 230, 255, 0.22);
+}
+
+.checkbox:checked {
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9), transparent 22%),
+    linear-gradient(135deg, rgba(144, 255, 186, 0.95), rgba(88, 230, 255, 0.95));
+  border-color: rgba(144, 255, 186, 0.95);
+  box-shadow:
+    0 0 0 1px rgba(144, 255, 186, 0.2),
+    0 0 18px rgba(88, 230, 255, 0.32);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.stat-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(88, 230, 255, 0.12);
+  background: linear-gradient(180deg, rgba(13, 23, 56, 0.9), rgba(5, 10, 24, 0.95));
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.rank-card strong {
+  color: var(--warning);
+  text-shadow: 0 0 18px rgba(255, 208, 110, 0.26);
+}
+
+#performanceChart {
+  width: 100%;
+  height: auto;
+  margin-top: 18px;
+  border-radius: 18px;
+  background: radial-gradient(circle at top, rgba(88, 230, 255, 0.1), rgba(3, 6, 16, 0.95));
+  border: 1px solid rgba(88, 230, 255, 0.08);
+}
+
+.progress-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.progress-item {
+  display: grid;
+  gap: 10px;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.78rem;
+}
+
+.progress-meta span:last-child {
+  color: var(--accent-strong);
+}
+
+.progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(88, 230, 255, 0.65), rgba(144, 255, 186, 0.95));
+  box-shadow: 0 0 18px rgba(88, 230, 255, 0.24);
+}
+
+@media (max-width: 1180px) {
+  .today-layout,
+  .stats-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .shell {
+    width: min(100% - 18px, 1480px);
+    margin-top: 10px;
+    margin-bottom: 20px;
   }
 
-  allProgress[getCurrentMonthKey()] = createMonthState(daysInMonth);
-  saveProgress();
-  render();
-});
-
-window.addEventListener("resize", drawChart);
-
-function populateMonthSelect() {
-  monthSelect.innerHTML = monthNames
-    .map(
-      (monthName, monthIndex) =>
-        `<option value="${monthIndex}" ${
-          monthIndex === selectedMonthIndex ? "selected" : ""
-        }>${monthName} ${year}</option>`,
-    )
-    .join("");
-}
-
-function render() {
-  const daysInMonth = getDaysInMonth(year, selectedMonthIndex);
-  const monthState = getMonthState();
-
-  updateCalendarLabels(daysInMonth);
-  renderMatrix(monthState, daysInMonth);
-  renderTopicProgress(monthState, daysInMonth);
-  renderStats(monthState, daysInMonth);
-  drawChart();
-}
-
-function renderMatrix(monthState, daysInMonth) {
-  const rowColumns = `grid-template-columns: minmax(240px, 1.1fr) repeat(${daysInMonth}, minmax(32px, 1fr));`;
-  habitMatrix.style.minWidth = `${Math.max(1260, 300 + daysInMonth * 38)}px`;
-
-  const headerCells = Array.from({ length: daysInMonth }, (_, index) => {
-    return `<div class="matrix-cell day-label" role="columnheader">${
-      index + 1
-    }</div>`;
-  }).join("");
-
-  const bodyRows = habits
-    .map((habitName, habitIndex) => {
-      const checkboxes = monthState[habitIndex]
-        .map((checked, dayIndex) => {
-          return `
-            <label class="matrix-cell" aria-label="${habitName} day ${
-              dayIndex + 1
-            }">
-              <input
-                class="checkbox"
-                type="checkbox"
-                data-habit-index="${habitIndex}"
-                data-day-index="${dayIndex}"
-                ${checked ? "checked" : ""}
-              />
-            </label>
-          `;
-        })
-        .join("");
-
-      return `
-        <div class="matrix-row" style="${rowColumns}" role="row">
-          <div class="matrix-cell matrix-label" role="rowheader">${habitName}</div>
-          ${checkboxes}
-        </div>
-      `;
-    })
-    .join("");
-
-  habitMatrix.innerHTML = `
-    <div class="matrix-row matrix-header" style="${rowColumns}" role="row">
-      <div class="matrix-cell matrix-label" role="columnheader">Routine / Day</div>
-      ${headerCells}
-    </div>
-    ${bodyRows}
-  `;
-
-  habitMatrix.querySelectorAll(".checkbox").forEach((checkbox) => {
-    checkbox.addEventListener("change", handleCheckboxChange);
-  });
-}
-
-function renderTopicProgress(monthState, daysInMonth) {
-  topicProgressList.innerHTML = habits
-    .map((habitName, habitIndex) => {
-      const completedCount = monthState[habitIndex].filter(Boolean).length;
-      const percentage = Math.round((completedCount / daysInMonth) * 100);
-
-      return `
-        <article class="progress-item">
-          <div class="progress-meta">
-            <span>${habitName}</span>
-            <span>${completedCount} / ${daysInMonth}</span>
-          </div>
-          <div class="progress-bar" aria-hidden="true">
-            <div class="progress-fill" style="width: ${percentage}%"></div>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
-}
-
-function renderStats(monthState, daysInMonth) {
-  const totalCompleted = monthState.flat().filter(Boolean).length;
-  const totalPossible = habits.length * daysInMonth;
-  const overallPercent = Math.round((totalCompleted / totalPossible) * 100);
-  const dailyTotals = getDailyTotals(monthState, daysInMonth);
-  const streak = getCurrentStreak(dailyTotals, daysInMonth);
-  const perfectCount = dailyTotals.filter((count) => count === habits.length).length;
-  const lastRelevantDayIndex = getLastRelevantDayIndex(daysInMonth);
-  const isLiveMonth = isCurrentSelectedMonth();
-  const relevantDayLabel = isLiveMonth ? "Today" : `Day ${lastRelevantDayIndex + 1}`;
-  const relevantDayScore = dailyTotals[lastRelevantDayIndex] ?? 0;
-
-  overallCompletion.textContent = `${overallPercent}%`;
-  currentStreak.textContent = `${streak} days`;
-  perfectDays.textContent = `${perfectCount}`;
-  rankBadge.textContent = getRank(overallPercent);
-  chartCaption.textContent = `${relevantDayLabel}: ${relevantDayScore} / ${habits.length}`;
-}
-
-function handleCheckboxChange(event) {
-  const habitIndex = Number(event.target.dataset.habitIndex);
-  const dayIndex = Number(event.target.dataset.dayIndex);
-  const monthKey = getCurrentMonthKey();
-  const daysInMonth = getDaysInMonth(year, selectedMonthIndex);
-
-  allProgress[monthKey][habitIndex][dayIndex] = event.target.checked;
-  saveProgress();
-  renderStats(allProgress[monthKey], daysInMonth);
-  renderTopicProgress(allProgress[monthKey], daysInMonth);
-  drawChart();
-}
-
-function drawChart() {
-  const daysInMonth = getDaysInMonth(year, selectedMonthIndex);
-  const monthState = getMonthState();
-  const dailyTotals = getDailyTotals(monthState, daysInMonth);
-  const computedWidth = Math.min(chartCanvas.parentElement.clientWidth - 2, 720);
-  const pixelRatio = window.devicePixelRatio || 1;
-  const logicalWidth = Math.max(320, computedWidth);
-  const logicalHeight = 360;
-
-  chartCanvas.width = logicalWidth * pixelRatio;
-  chartCanvas.height = logicalHeight * pixelRatio;
-  chartCanvas.style.width = `${logicalWidth}px`;
-  chartCanvas.style.height = `${logicalHeight}px`;
-  chartContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-
-  chartContext.clearRect(0, 0, logicalWidth, logicalHeight);
-
-  const padding = { top: 28, right: 20, bottom: 46, left: 48 };
-  const graphWidth = logicalWidth - padding.left - padding.right;
-  const graphHeight = logicalHeight - padding.top - padding.bottom;
-  const maxValue = habits.length;
-
-  drawGrid(chartContext, padding, graphWidth, graphHeight, maxValue, daysInMonth);
-  drawLine(
-    chartContext,
-    dailyTotals,
-    padding,
-    graphWidth,
-    graphHeight,
-    maxValue,
-    daysInMonth,
-  );
-}
-
-function drawGrid(ctx, padding, graphWidth, graphHeight, maxValue, daysInMonth) {
-  ctx.save();
-  ctx.strokeStyle = "rgba(140, 244, 255, 0.12)";
-  ctx.fillStyle = "rgba(140, 244, 255, 0.7)";
-  ctx.lineWidth = 1;
-  ctx.font = '12px "Orbitron", sans-serif';
-
-  for (let yValue = 0; yValue <= maxValue; yValue += 2) {
-    const y = padding.top + graphHeight - (yValue / maxValue) * graphHeight;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, y);
-    ctx.lineTo(padding.left + graphWidth, y);
-    ctx.stroke();
-    ctx.fillText(String(yValue), 12, y + 4);
+  .hero,
+  .today-overview,
+  .today-quests,
+  .tracker,
+  .stats-panel,
+  .chart-panel,
+  .progress-panel {
+    padding: 18px;
   }
 
-  for (let day = 0; day < daysInMonth; day += 1) {
-    const x = padding.left + (day / Math.max(daysInMonth - 1, 1)) * graphWidth;
-
-    if ((day + 1) % 5 === 0 || day === 0 || day === daysInMonth - 1) {
-      ctx.fillText(String(day + 1), x - 8, padding.top + graphHeight + 26);
-    }
+  .hero {
+    flex-direction: column;
   }
 
-  ctx.restore();
-}
-
-function drawLine(
-  ctx,
-  dailyTotals,
-  padding,
-  graphWidth,
-  graphHeight,
-  maxValue,
-  daysInMonth,
-) {
-  const points = dailyTotals.map((value, index) => {
-    return {
-      x: padding.left + (index / Math.max(daysInMonth - 1, 1)) * graphWidth,
-      y: padding.top + graphHeight - (value / maxValue) * graphHeight,
-      value,
-    };
-  });
-
-  const areaGradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + graphHeight);
-  areaGradient.addColorStop(0, "rgba(88, 230, 255, 0.38)");
-  areaGradient.addColorStop(1, "rgba(88, 230, 255, 0.02)");
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, padding.top + graphHeight);
-
-  points.forEach((point) => {
-    ctx.lineTo(point.x, point.y);
-  });
-
-  ctx.lineTo(points[points.length - 1].x, padding.top + graphHeight);
-  ctx.closePath();
-  ctx.fillStyle = areaGradient;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y);
-  points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "#58e6ff";
-  ctx.shadowColor = "rgba(88, 230, 255, 0.45)";
-  ctx.shadowBlur = 16;
-  ctx.stroke();
-
-  points.forEach((point) => {
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = point.value === maxValue ? "#90ffba" : "#8cf4ff";
-    ctx.shadowBlur = 0;
-    ctx.fill();
-  });
-
-  ctx.restore();
-}
-
-function getDailyTotals(monthState, daysInMonth) {
-  return Array.from({ length: daysInMonth }, (_, dayIndex) => {
-    return monthState.reduce((sum, habitDays) => sum + Number(habitDays[dayIndex]), 0);
-  });
-}
-
-function getCurrentStreak(dailyTotals, daysInMonth) {
-  const lastRelevantDayIndex = getLastRelevantDayIndex(daysInMonth);
-  let streak = 0;
-
-  for (let dayIndex = lastRelevantDayIndex; dayIndex >= 0; dayIndex -= 1) {
-    if (dailyTotals[dayIndex] > 0) {
-      streak += 1;
-    } else if (streak > 0) {
-      break;
-    }
+  .app-brand {
+    align-items: start;
   }
 
-  return streak;
-}
-
-function getRank(overallPercent) {
-  if (overallPercent >= 95) return "S";
-  if (overallPercent >= 85) return "A";
-  if (overallPercent >= 70) return "B";
-  if (overallPercent >= 55) return "C";
-  if (overallPercent >= 35) return "D";
-  return "E";
-}
-
-function getCurrentMonthKey() {
-  return `${year}-${String(selectedMonthIndex + 1).padStart(2, "0")}`;
-}
-
-function getMonthState() {
-  const monthKey = getCurrentMonthKey();
-  const daysInMonth = getDaysInMonth(year, selectedMonthIndex);
-
-  if (!allProgress[monthKey]) {
-    allProgress[monthKey] = createMonthState(daysInMonth);
-    saveProgress();
-  } else {
-    const normalizedState = normalizeMonthState(allProgress[monthKey], daysInMonth);
-
-    if (normalizedState !== allProgress[monthKey]) {
-      allProgress[monthKey] = normalizedState;
-      saveProgress();
-    }
+  .app-brand-icon {
+    width: 64px;
+    height: 64px;
   }
 
-  return allProgress[monthKey];
-}
-
-function createMonthState(daysInMonth) {
-  return Array.from({ length: habits.length }, () =>
-    Array.from({ length: daysInMonth }, () => false),
-  );
-}
-
-function normalizeMonthState(monthState, daysInMonth) {
-  if (
-    Array.isArray(monthState) &&
-    monthState.length === habits.length &&
-    monthState.every((habitDays) => Array.isArray(habitDays) && habitDays.length === daysInMonth)
-  ) {
-    return monthState;
+  .hero-controls,
+  .today-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  return Array.from({ length: habits.length }, (_, habitIndex) => {
-    const savedDays = Array.isArray(monthState?.[habitIndex]) ? monthState[habitIndex] : [];
-    return Array.from({ length: daysInMonth }, (_, dayIndex) => Boolean(savedDays[dayIndex]));
-  });
-}
-
-function updateCalendarLabels(daysInMonth) {
-  gridTitle.textContent = `${daysInMonth}-Day Mission Grid`;
-  gridNote.textContent = `Each row tracks one routine for the real ${monthNames[selectedMonthIndex]} ${year} calendar.`;
-}
-
-function getDaysInMonth(targetYear, monthIndex) {
-  return new Date(targetYear, monthIndex + 1, 0).getDate();
-}
-
-function getLastRelevantDayIndex(daysInMonth) {
-  const now = getNow();
-
-  if (isCurrentSelectedMonth(now)) {
-    return Math.min(now.getDate(), daysInMonth) - 1;
+  select,
+  .reset-button,
+  .install-button {
+    width: 100%;
   }
 
-  return daysInMonth - 1;
-}
-
-function isCurrentSelectedMonth(now = getNow()) {
-  return year === now.getFullYear() && selectedMonthIndex === now.getMonth();
-}
-
-function startCalendarSync() {
-  window.setInterval(syncWithRealCalendar, 60_000);
-  window.addEventListener("focus", syncWithRealCalendar);
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      syncWithRealCalendar();
-    }
-  });
-}
-
-function syncWithRealCalendar() {
-  const now = getNow();
-  const currentDateStamp = getDateStamp(now);
-
-  if (currentDateStamp === lastSeenDateStamp) {
-    return;
+  .app-nav {
+    position: sticky;
+    bottom: 10px;
+    z-index: 8;
+    gap: 8px;
+    padding: 8px;
+    margin-top: 14px;
+    background: rgba(4, 10, 24, 0.9);
+    backdrop-filter: blur(20px);
   }
 
-  const wasViewingLiveMonth =
-    year === lastSeenLiveYear && selectedMonthIndex === lastSeenLiveMonthIndex;
-
-  lastSeenDateStamp = currentDateStamp;
-  lastSeenLiveYear = now.getFullYear();
-  lastSeenLiveMonthIndex = now.getMonth();
-
-  if (wasViewingLiveMonth) {
-    year = now.getFullYear();
-    selectedMonthIndex = now.getMonth();
-    populateMonthSelect();
+  .nav-tab {
+    min-height: 52px;
+    padding-inline: 10px;
+    font-size: 0.75rem;
   }
 
-  render();
-}
-
-function getDateStamp(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate(),
-  ).padStart(2, "0")}`;
-}
-
-function getNow() {
-  return new Date();
-}
-
-function setupInstallFlow() {
-  updateInstallUi();
-
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    updateInstallUi();
-  });
-
-  installAppButton.addEventListener("click", async () => {
-    if (!deferredInstallPrompt) {
-      updateInstallUi();
-      return;
-    }
-
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    updateInstallUi();
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredInstallPrompt = null;
-    updateInstallUi(true);
-  });
-}
-
-function updateInstallUi(forceInstalled = false) {
-  const isInstalled =
-    forceInstalled ||
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-  const isSecureAppContext =
-    window.location.protocol === "https:" ||
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-
-  if (isInstalled) {
-    installAppButton.classList.add("is-hidden");
-    installStateBadge.textContent = "Installed";
-    installHint.textContent = "This device is running the app in standalone mode.";
-    return;
+  .today-heading,
+  .tracker-header,
+  .chart-heading {
+    flex-direction: column;
+    align-items: start;
   }
 
-  if (deferredInstallPrompt) {
-    installAppButton.classList.remove("is-hidden");
-    installStateBadge.textContent = "Ready To Install";
-    installHint.textContent =
-      "Tap Install App on Android to add Awakening System to your home screen.";
-    return;
+  .daily-ring {
+    width: 110px;
+    height: 110px;
   }
 
-  installAppButton.classList.add("is-hidden");
-  installStateBadge.textContent = isSecureAppContext ? "App Ready" : "Host On HTTPS";
-  installHint.textContent = isSecureAppContext
-    ? "Open this on your phone in Chrome, then use Add to Home screen if the install prompt does not appear."
-    : "For phone install, open this project from an HTTPS site or localhost so Android can treat it like an app.";
-}
-
-function registerServiceWorker() {
-  if (!("serviceWorker" in navigator)) {
-    return;
+  .mini-stat-grid,
+  .stat-grid {
+    grid-template-columns: 1fr;
   }
 
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch((error) => {
-      console.warn("Could not register service worker.", error);
-    });
-  });
-}
-
-function loadProgress() {
-  try {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : {};
-  } catch (error) {
-    console.warn("Could not load saved progress.", error);
-    return {};
+  .today-quest-content {
+    min-height: 72px;
+    padding: 16px;
   }
-}
-
-function saveProgress() {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(allProgress));
 }
