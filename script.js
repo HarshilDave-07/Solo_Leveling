@@ -5,7 +5,7 @@ const habits = [
   "Wake up 04:00 AM",
   "Read",
   "Study 3 HR",
-  "No Fap",
+  "Meditate",
   "30 Min Exercise",
   "Pray to God",
   "30 Min No Phone",
